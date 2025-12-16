@@ -27,6 +27,7 @@ interface MemberFormDialogProps {
   onDelete?: () => void;
   member?: FamilyMember | null;
   isNew?: boolean;
+  readOnly?: boolean;
 }
 
 export function MemberFormDialog({
@@ -36,13 +37,14 @@ export function MemberFormDialog({
   onDelete,
   member,
   isNew = false,
+  readOnly = false,
 }: MemberFormDialogProps) {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     birth_date: '',
     death_date: '',
-    gender: '' as 'male' | 'female' | 'other' | '',
+    gender: '' as string,
     bio: '',
     photo_url: '',
   });
@@ -88,7 +90,7 @@ export function MemberFormDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">
-            {isNew ? 'Add Family Member' : 'Edit Family Member'}
+            {readOnly ? 'View Family Member' : isNew ? 'Add Family Member' : 'Edit Family Member'}
           </DialogTitle>
         </DialogHeader>
 
@@ -116,6 +118,7 @@ export function MemberFormDialog({
               placeholder="https://example.com/photo.jpg"
               value={formData.photo_url}
               onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+              disabled={readOnly}
             />
           </div>
 
@@ -125,9 +128,10 @@ export function MemberFormDialog({
               <Label htmlFor="first_name">First Name *</Label>
               <Input
                 id="first_name"
-                required
+                required={!readOnly}
                 value={formData.first_name}
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                disabled={readOnly}
               />
             </div>
             <div className="space-y-2">
@@ -136,6 +140,7 @@ export function MemberFormDialog({
                 id="last_name"
                 value={formData.last_name}
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                disabled={readOnly}
               />
             </div>
           </div>
@@ -145,7 +150,8 @@ export function MemberFormDialog({
             <Label htmlFor="gender">Gender</Label>
             <Select
               value={formData.gender}
-              onValueChange={(value) => setFormData({ ...formData, gender: value as 'male' | 'female' | 'other' })}
+              onValueChange={(value) => setFormData({ ...formData, gender: value })}
+              disabled={readOnly}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select gender" />
@@ -167,6 +173,7 @@ export function MemberFormDialog({
                 type="date"
                 value={formData.birth_date}
                 onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                disabled={readOnly}
               />
             </div>
             <div className="space-y-2">
@@ -176,6 +183,7 @@ export function MemberFormDialog({
                 type="date"
                 value={formData.death_date}
                 onChange={(e) => setFormData({ ...formData, death_date: e.target.value })}
+                disabled={readOnly}
               />
             </div>
           </div>
@@ -189,11 +197,12 @@ export function MemberFormDialog({
               rows={4}
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              disabled={readOnly}
             />
           </div>
 
           <DialogFooter className="gap-2">
-            {!isNew && onDelete && (
+            {!isNew && !readOnly && onDelete && (
               <Button
                 type="button"
                 variant="destructive"
@@ -205,11 +214,13 @@ export function MemberFormDialog({
               </Button>
             )}
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {readOnly ? 'Close' : 'Cancel'}
             </Button>
-            <Button type="submit" variant="gold">
-              {isNew ? 'Add Member' : 'Save Changes'}
-            </Button>
+            {!readOnly && (
+              <Button type="submit" variant="gold">
+                {isNew ? 'Add Member' : 'Save Changes'}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
