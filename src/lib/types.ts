@@ -28,10 +28,10 @@ export interface FamilyMember {
   death_date: string | null;
   photo_url: string | null;
   bio: string | null;
-  gender: 'male' | 'female' | 'other' | null;
+  gender: string | null;
   is_root: boolean;
-  position_x: number;
-  position_y: number;
+  position_x: number | null;
+  position_y: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,7 +41,7 @@ export interface Relationship {
   tree_id: string;
   parent_id: string;
   child_id: string;
-  relationship_type: 'biological' | 'adopted' | 'step';
+  relationship_type: string;
   created_at: string;
 }
 
@@ -50,9 +50,20 @@ export interface SpouseRelationship {
   tree_id: string;
   member1_id: string;
   member2_id: string;
-  relationship_type: 'married' | 'divorced' | 'partner';
+  relationship_type: string;
   marriage_date: string | null;
   divorce_date: string | null;
+  created_at: string;
+}
+
+export interface LinkedTree {
+  id: string;
+  name: string;
+  tree1_id: string;
+  tree2_id: string;
+  link_member1_id: string;
+  link_member2_id: string;
+  owner_id: string;
   created_at: string;
 }
 

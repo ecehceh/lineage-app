@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TreeView from "./pages/TreeView";
+import LinkedTreeView from "./pages/LinkedTreeView";
 import Explore from "./pages/Explore";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tree/:id" element={<TreeView />} />
+            <Route path="/linked/:id" element={<LinkedTreeView />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { FamilyTree } from '@/lib/types';
+import { FamilyTree, LinkedTree } from '@/lib/types';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { TreeCard } from '@/components/cards/TreeCard';
+import { LinkTreeDialog } from '@/components/tree/LinkTreeDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,17 +20,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, TreeDeciduous, Search, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus, TreeDeciduous, Search, Loader2, Link2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [trees, setTrees] = useState<FamilyTree[]>([]);
+  const [linkedTrees, setLinkedTrees] = useState<LinkedTree[]>([]);
   const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newTreeData, setNewTreeData] = useState({
     name: '',
@@ -45,9 +49,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user) {
-      fetchTrees();
+      fetchData();
     }
   }, [user]);
+
+  const fetchData = async () => {
+    if (!user) return;
+    await Promise.all([fetchTrees(), fetchLinkedTrees()]);
+    setLoading(false);
+  };
 
   const fetchTrees = async () => {
     if (!user) return;
@@ -78,8 +88,23 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching trees:', error);
       toast.error('Failed to load your family trees');
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchLinkedTrees = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('linked_trees')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLinkedTrees((data as LinkedTree[]) || []);
+    } catch (error) {
+      console.error('Error fetching linked trees:', error);
     }
   };
 
@@ -113,10 +138,33 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteLinkedTree = async (linkedTreeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('linked_trees')
+        .delete()
+        .eq('id', linkedTreeId);
+
+      if (error) throw error;
+
+      toast.success('Link removed');
+      fetchLinkedTrees();
+    } catch (error) {
+      console.error('Error deleting linked tree:', error);
+      toast.error('Failed to remove link');
+    }
+  };
+
   const filteredTrees = trees.filter(tree =>
     tree.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tree.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const getTreeNamesForLink = (link: LinkedTree) => {
+    const tree1 = trees.find(t => t.id === link.tree1_id);
+    const tree2 = trees.find(t => t.id === link.tree2_id);
+    return `${tree1?.name || 'Unknown'} + ${tree2?.name || 'Unknown'}`;
+  };
 
   if (authLoading || loading) {
     return (
@@ -144,11 +192,65 @@ export default function Dashboard() {
                 Create and manage your family history
               </p>
             </div>
-            <Button variant="gold" onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-5 w-5" />
-              Create New Tree
-            </Button>
+            <div className="flex gap-2">
+              {trees.length >= 2 && (
+                <Button variant="outline" onClick={() => setLinkDialogOpen(true)}>
+                  <Link2 className="mr-2 h-5 w-5" />
+                  Link Trees
+                </Button>
+              )}
+              <Button variant="gold" onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="mr-2 h-5 w-5" />
+                Create New Tree
+              </Button>
+            </div>
           </motion.div>
+
+          {/* Linked Trees Section */}
+          {linkedTrees.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="mb-8"
+            >
+              <h2 className="text-lg font-serif font-semibold mb-4 flex items-center gap-2">
+                <Link2 className="h-5 w-5 text-accent" />
+                Combined Family Views
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {linkedTrees.map((link) => (
+                  <Card
+                    key={link.id}
+                    className="group cursor-pointer hover:shadow-elegant transition-shadow"
+                    onClick={() => navigate(`/linked/${link.id}`)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-serif font-semibold mb-1">{link.name}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {getTreeNamesForLink(link)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteLinkedTree(link.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Search */}
           <motion.div
@@ -264,6 +366,16 @@ export default function Dashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Link Trees Dialog */}
+      {user && (
+        <LinkTreeDialog
+          open={linkDialogOpen}
+          onClose={() => setLinkDialogOpen(false)}
+          userId={user.id}
+          onSuccess={fetchLinkedTrees}
+        />
+      )}
     </div>
   );
 }

@@ -114,6 +114,68 @@ export type Database = {
           },
         ]
       }
+      linked_trees: {
+        Row: {
+          created_at: string
+          id: string
+          link_member1_id: string
+          link_member2_id: string
+          name: string
+          owner_id: string
+          tree1_id: string
+          tree2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link_member1_id: string
+          link_member2_id: string
+          name: string
+          owner_id: string
+          tree1_id: string
+          tree2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link_member1_id?: string
+          link_member2_id?: string
+          name?: string
+          owner_id?: string
+          tree1_id?: string
+          tree2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linked_trees_link_member1_id_fkey"
+            columns: ["link_member1_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linked_trees_link_member2_id_fkey"
+            columns: ["link_member2_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linked_trees_tree1_id_fkey"
+            columns: ["tree1_id"]
+            isOneToOne: false
+            referencedRelation: "family_trees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linked_trees_tree2_id_fkey"
+            columns: ["tree2_id"]
+            isOneToOne: false
+            referencedRelation: "family_trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
