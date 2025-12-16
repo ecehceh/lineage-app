@@ -7,6 +7,7 @@ import { FamilyTree, FamilyMember, Relationship, SpouseRelationship } from '@/li
 import { Navbar } from '@/components/layout/Navbar';
 import { TreeViewer } from '@/components/tree/TreeViewer';
 import { MemberFormDialog } from '@/components/tree/MemberFormDialog';
+import { SpouseDialog } from '@/components/tree/SpouseDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -41,9 +42,9 @@ import {
   Lock, 
   Loader2, 
   MoreVertical,
-  Edit2,
   Trash2,
-  UserPlus
+  UserPlus,
+  Heart
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -66,6 +67,7 @@ export default function TreeView() {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [spouseDialogOpen, setSpouseDialogOpen] = useState(false);
   const [treeSettings, setTreeSettings] = useState({ name: '', is_public: false });
 
   useEffect(() => {
@@ -224,6 +226,47 @@ export default function TreeView() {
     }
   };
 
+  const handleAddSpouseRelationship = async (member1Id: string, member2Id: string, marriageDate?: string) => {
+    if (!id) return;
+
+    try {
+      const { error } = await supabase
+        .from('spouse_relationships')
+        .insert({
+          tree_id: id,
+          member1_id: member1Id,
+          member2_id: member2Id,
+          marriage_date: marriageDate || null,
+          relationship_type: 'married',
+        });
+
+      if (error) throw error;
+
+      toast.success('Spouse relationship added!');
+      fetchTreeData();
+    } catch (error) {
+      console.error('Error adding spouse relationship:', error);
+      toast.error('Failed to add relationship');
+    }
+  };
+
+  const handleDeleteSpouseRelationship = async (relationshipId: string) => {
+    try {
+      const { error } = await supabase
+        .from('spouse_relationships')
+        .delete()
+        .eq('id', relationshipId);
+
+      if (error) throw error;
+
+      toast.success('Relationship removed');
+      fetchTreeData();
+    } catch (error) {
+      console.error('Error deleting spouse relationship:', error);
+      toast.error('Failed to remove relationship');
+    }
+  };
+
   const handleUpdateTreeSettings = async () => {
     if (!tree || !id) return;
 
@@ -316,6 +359,12 @@ export default function TreeView() {
                     <UserPlus className="mr-2 h-4 w-4" />
                     Add Member
                   </Button>
+                  {members.length >= 2 && (
+                    <Button variant="outline" onClick={() => setSpouseDialogOpen(true)}>
+                      <Heart className="mr-2 h-4 w-4" />
+                      Manage Spouses
+                    </Button>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -436,6 +485,16 @@ export default function TreeView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Spouse Relationship Dialog */}
+      <SpouseDialog
+        open={spouseDialogOpen}
+        onClose={() => setSpouseDialogOpen(false)}
+        members={members}
+        existingRelationships={spouseRelationships}
+        onSave={handleAddSpouseRelationship}
+        onDelete={handleDeleteSpouseRelationship}
+      />
     </div>
   );
 }
