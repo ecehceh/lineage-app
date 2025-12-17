@@ -301,7 +301,7 @@ export function TreeViewer({
       {/* Tree Content */}
       <div 
         ref={containerRef}
-        className="w-full h-full overflow-auto p-8"
+        className="w-full h-full overflow-auto p-4 sm:p-8"
         style={{ minHeight: '500px' }}
       >
         {treeRoot ? (

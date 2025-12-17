@@ -123,7 +123,7 @@ export function MemberFormDialog({
           </div>
 
           {/* Name Fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">First Name *</Label>
               <Input
@@ -165,7 +165,7 @@ export function MemberFormDialog({
           </div>
 
           {/* Date Fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="birth_date">Birth Date</Label>
               <Input

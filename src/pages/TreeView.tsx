@@ -325,11 +325,11 @@ export default function TreeView() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-16 sm:pt-20 flex flex-col min-h-0">
         {/* Header */}
         <div className="bg-card border-b border-border">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
@@ -355,15 +355,15 @@ export default function TreeView() {
 
               {isOwner && (
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" onClick={() => handleAddMember()}>
+                  <Button variant="outline" onClick={() => handleAddMember()} className="hidden sm:inline-flex">
                     <UserPlus className="mr-2 h-4 w-4" />
                     Add Member
                   </Button>
                   {members.length >= 2 && (
-                    <Button variant="outline" onClick={() => setSpouseDialogOpen(true)}>
-                      <Heart className="mr-2 h-4 w-4" />
-                      Manage Spouses
-                    </Button>
+                  <Button variant="outline" onClick={() => setSpouseDialogOpen(true)} className="hidden sm:inline-flex">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Manage Spouse
+                  </Button>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -393,11 +393,11 @@ export default function TreeView() {
         </div>
 
         {/* Tree Viewer */}
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 flex-1 min-h-0">
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="h-[calc(100vh-200px)]"
+            className="h-full min-h-[420px]"
           >
             <TreeViewer
               members={members}
