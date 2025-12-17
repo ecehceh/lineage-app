@@ -18,7 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Link2, Loader2, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { ArrowLeft, Link2, Loader2, Trash2, TreeDeciduous, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LinkedTreeView() {
@@ -38,6 +45,7 @@ export default function LinkedTreeView() {
 
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [originDialogOpen, setOriginDialogOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -138,6 +146,23 @@ export default function LinkedTreeView() {
 
   const handleViewMember = (member: FamilyMember) => {
     setSelectedMember(member);
+    setOriginDialogOpen(true);
+  };
+
+  const getOriginTree = (member: FamilyMember): FamilyTree | null => {
+    if (member.tree_id === tree1?.id) return tree1;
+    if (member.tree_id === tree2?.id) return tree2;
+    return null;
+  };
+
+  const handleViewOriginFamily = () => {
+    if (selectedMember) {
+      navigate(`/tree/${selectedMember.tree_id}`);
+    }
+  };
+
+  const handleViewMemberDetails = () => {
+    setOriginDialogOpen(false);
     setMemberDialogOpen(true);
   };
 
@@ -232,6 +257,44 @@ export default function LinkedTreeView() {
           </motion.div>
         </div>
       </main>
+
+      {/* Origin Family Dialog */}
+      <Dialog open={originDialogOpen} onOpenChange={setOriginDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif">
+              {selectedMember?.first_name} {selectedMember?.last_name}
+            </DialogTitle>
+            <DialogDescription>
+              View member details or navigate to their origin family tree.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {selectedMember && getOriginTree(selectedMember) && (
+              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <TreeDeciduous className="h-4 w-4" />
+                  <span>Origin Family</span>
+                </div>
+                <p className="font-serif font-medium">
+                  {getOriginTree(selectedMember)?.name}
+                </p>
+              </div>
+            )}
+            
+            <div className="flex flex-col gap-2">
+              <Button onClick={handleViewMemberDetails} variant="outline">
+                View Member Details
+              </Button>
+              <Button onClick={handleViewOriginFamily} className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                View Origin Family Tree
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Member View Dialog */}
       <MemberFormDialog
